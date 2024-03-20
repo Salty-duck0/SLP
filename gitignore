@@ -1,0 +1,5 @@
+# ignore model files
+goturn.caffemodel
+goturn.prototxt
+# ignore ALL files in ANY directory named vids
+vids/
