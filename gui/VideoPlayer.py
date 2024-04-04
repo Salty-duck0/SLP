@@ -1,194 +1,160 @@
-import os
-import sys
-from PySide6.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QApplication, QSlider, QPushButton, QFileDialog, QHBoxLayout, QFrame, QLabel, QSizePolicy
-from PySide6.QtGui import QAction, QPalette, QColor, QIcon
-from PySide6.QtCore import Qt, QTimer, QSize
+import tkinter as tk
+from tkinter import ttk
 import vlc
+from tkinter import filedialog
+from datetime import timedelta
+import customtkinter as ctk
 
-class MediaPlayer(QMainWindow):
+ctk.set_appearance_mode("Dark")  # Modes: "System" (standard), "Dark", "Light"
+ctk.set_default_color_theme("dark-blue")  # Themes: "blue" (standard), "green", "dark-blue"
 
-    def __init__(self, master=None):
-        super().__init__(master)
-        self.setWindowTitle("Media Player")
-        self.setWindowIcon(QIcon("icon.png"))
+class MediaPlayerApp(ctk.CTk):
+    def __init__(self):
+        super().__init__()
+        self.title("Media Player")
+        self.geometry(f"{1500}x{900}")
+        self.initialize_player()
 
-        # Create a basic vlc instance
+    def initialize_player(self):
         self.instance = vlc.Instance()
+        self.media_player = self.instance.media_player_new()
+        self.current_file = None
+        self.playing_video = False
+        self.video_paused = False
+        self.create_widgets()
 
-        self.media = None
-        self.playlist = []
+    def create_widgets(self):
+        self.media_canvas = tk.Canvas(self, width=800, height=400,background='black',highlightbackground="gray75") 
+        self.media_canvas.pack(pady=10, fill=tk.BOTH, expand=True)
+        
+        # CTkSlider
+        self.progress_slider = ctk.CTkSlider(
+            self, 
+            from_=0, 
+            to=100, 
+            command=self.seek_video
+        )
+        self.progress_slider.set(0)
+        self.progress_slider.pack(fill="x", padx=10, pady=5)
 
-        # Create an empty vlc media player
-        self.mediaplayer = self.instance.media_player_new()
+        self.select_file_button = ctk.CTkButton(
+            self,
+            text="Select File",
+            font=("Arial", 12, "bold"),
+            command=self.select_file,
+            corner_radius=5
+        )
+        self.select_file_button.pack(pady=5)
+        self.control_buttons_frame = ctk.CTkFrame(self)
+        self.control_buttons_frame.pack(pady=5)
+        self.play_button = ctk.CTkButton(
+            self.control_buttons_frame,
+            text="Play",
+            font=("Arial", 12, "bold"),
+            command=self.play_video,
+            corner_radius=5
+        )
+        self.play_button.pack(side=tk.LEFT, padx=5, pady=5)
+        self.pause_button = ctk.CTkButton(
+            self.control_buttons_frame,
+            text="Pause",
+            font=("Arial", 12, "bold"),
+            command=self.pause_video,
+            corner_radius=5
+        )
+        self.pause_button.pack(side=tk.LEFT, padx=10, pady=5)
+        self.stop_button = ctk.CTkButton(
+            self.control_buttons_frame,
+            text="Stop",
+            font=("Arial", 12, "bold"),
+            command=self.stop,
+            corner_radius=5
+        )
+        self.stop_button.pack(side=tk.LEFT, pady=5)
+        self.fast_forward_button = ctk.CTkButton(
+            self.control_buttons_frame,
+            text="Fast Forward",
+            font=("Arial", 12, "bold"),
+            command=self.fast_forward,
+            corner_radius=5
+        )
+        self.fast_forward_button.pack(side=tk.LEFT, padx=10, pady=5)
+        self.rewind_button = ctk.CTkButton(
+            self.control_buttons_frame,
+            text="Rewind",
+            font=("Arial", 12, "bold"),
+            command=self.rewind,
+            corner_radius=5
+        )
+        self.rewind_button.pack(side=tk.LEFT, pady=5)
 
-        self.create_ui()
-        self.is_paused = False
-        self.current_media_index = 0
+        # Time label
+        self.time_label = ctk.CTkLabel(self, text="", font=("Arial", 12, "bold"))
+        self.time_label.pack(pady=5)
 
-    def create_ui(self):
-        self.widget = QWidget(self)
-        self.setCentralWidget(self.widget)
+    def select_file(self):
+        file_path = filedialog.askopenfilename(
+            filetypes=[("Media Files", "*.mp4 *.avi")]
+        )
+        if file_path:
+            self.current_file = file_path
+            self.play_video()
 
-        self.videoframe = QFrame()
+    def play_video(self):
+        if not self.playing_video:
+            media = self.instance.media_new(self.current_file)
+            self.media_player.set_media(media)
+            self.media_player.set_hwnd(self.media_canvas.winfo_id())
+            self.media_player.play()
+            self.playing_video = True
+            self.update_video_progress()
 
-        self.palette = self.videoframe.palette()
-        self.palette.setColor(QPalette.Window, QColor(0, 0, 0))
-        self.videoframe.setPalette(self.palette)
-        self.videoframe.setAutoFillBackground(True)
+    def update_video_progress(self):
+        if self.playing_video:
+            total_duration = self.media_player.get_length()
+            current_time = self.media_player.get_time()
+            if total_duration > 0:
+                progress_percentage = (current_time / total_duration) * 100
+                self.progress_slider.set(progress_percentage)
+                current_time_str = str(timedelta(milliseconds=current_time))[:-3]
+                total_duration_str = str(timedelta(milliseconds=total_duration))[:-3]
+                self.time_label.configure(text=f"{current_time_str}/{total_duration_str}")
+        self.after(10, self.update_video_progress)
 
-        self.positionslider = QSlider(Qt.Orientation.Horizontal, self)
-        self.positionslider.setToolTip("Position")
-        self.positionslider.setMaximum(1000)
-        self.positionslider.sliderMoved.connect(self.set_position)
+    def seek_video(self, value):
+        if self.playing_video:
+            total_duration = self.media_player.get_length()
+            if total_duration > 0:
+                seek_time = int((int(value) / 100) * total_duration) 
+                self.media_player.set_time(seek_time)
 
-        self.hbuttonbox = QHBoxLayout()
-        self.playbutton = QPushButton("Play")
-        self.hbuttonbox.addWidget(self.playbutton)
-        self.playbutton.clicked.connect(self.play_pause)
 
-        self.stopbutton = QPushButton("Stop")
-        self.hbuttonbox.addWidget(self.stopbutton)
-        self.stopbutton.clicked.connect(self.stop)
+    def fast_forward(self):
+        if self.playing_video:
+            current_time = self.media_player.get_time() + 5000
+            self.media_player.set_time(current_time)
 
-        self.prevbutton = QPushButton("Prev")
-        self.hbuttonbox.addWidget(self.prevbutton)
-        self.prevbutton.clicked.connect(self.play_prev)
+    def rewind(self):
+        if self.playing_video:
+            current_time = self.media_player.get_time() - 5000
+            self.media_player.set_time(current_time)
 
-        self.nextbutton = QPushButton("Next")
-        self.hbuttonbox.addWidget(self.nextbutton)
-        self.nextbutton.clicked.connect(self.play_next)
-
-        self.seekforwardbutton = QPushButton("Seek Forward")
-        self.hbuttonbox.addWidget(self.seekforwardbutton)
-        self.seekforwardbutton.clicked.connect(lambda: self.seek(10))
-
-        self.seekbackwardbutton = QPushButton("Seek Backward")
-        self.hbuttonbox.addWidget(self.seekbackwardbutton)
-        self.seekbackwardbutton.clicked.connect(lambda: self.seek(-10))
-
-        self.fullscreenbutton = QPushButton("Fullscreen")
-        self.hbuttonbox.addWidget(self.fullscreenbutton)
-        self.fullscreenbutton.clicked.connect(self.toggle_fullscreen)
-
-        self.hbuttonbox.addStretch(1)
-        self.volumeslider = QSlider(Qt.Orientation.Horizontal, self)
-        self.volumeslider.setMaximum(100)
-        self.volumeslider.setValue(self.mediaplayer.audio_get_volume())
-        self.volumeslider.setToolTip("Volume")
-        self.hbuttonbox.addWidget(self.volumeslider)
-        self.volumeslider.valueChanged.connect(self.set_volume)
-
-        self.vboxlayout = QVBoxLayout()
-        self.vboxlayout.addWidget(self.videoframe)
-        self.vboxlayout.addWidget(self.positionslider)
-        self.vboxlayout.addLayout(self.hbuttonbox)
-
-        self.widget.setLayout(self.vboxlayout)
-
-        menu_bar = self.menuBar()
-
-        # File menu
-        file_menu = menu_bar.addMenu("File")
-
-        # Add actions to file menu
-        open_action = QAction("Load Video", self)
-        close_action = QAction("Close App", self)
-        file_menu.addAction(open_action)
-        file_menu.addAction(close_action)
-
-        open_action.triggered.connect(self.open_file)
-        close_action.triggered.connect(sys.exit)
-
-        self.timer = QTimer(self)
-        self.timer.setInterval(100)
-        self.timer.timeout.connect(self.update_ui)
-
-    def play_pause(self):
-        if self.mediaplayer.is_playing():
-            self.mediaplayer.pause()
-            self.playbutton.setText("Play")
-            self.is_paused = True
-            self.timer.stop()
-        else:
-            if self.mediaplayer.play() == -1:
-                self.open_file()
-                return
-            self.mediaplayer.play()
-            self.playbutton.setText("Pause")
-            self.timer.start()
-            self.is_paused = False
+    def pause_video(self):
+        if self.playing_video:
+            if self.video_paused:
+                self.media_player.play()
+                self.video_paused = False
+                self.pause_button.configure(text="Pause")
+            else:
+                self.media_player.pause()
+                self.video_paused = True
+                self.pause_button.configure(text="Resume")
 
     def stop(self):
-        self.mediaplayer.stop()
-        self.playbutton.setText("Play")
-
-    def play_next(self):
-        if self.current_media_index < len(self.playlist) - 1:
-            self.current_media_index += 1
-            self.media = self.instance.media_new(self.playlist[self.current_media_index])
-            self.mediaplayer.set_media(self.media)
-            self.setWindowTitle(os.path.basename(self.playlist[self.current_media_index]))
-            self.play_pause()
-
-    def play_prev(self):
-        if self.current_media_index > 0:
-            self.current_media_index -= 1
-            self.media = self.instance.media_new(self.playlist[self.current_media_index])
-            self.mediaplayer.set_media(self.media)
-            self.setWindowTitle(os.path.basename(self.playlist[self.current_media_index]))
-            self.play_pause()
-
-    def seek(self, seconds):
-        current_time = self.mediaplayer.get_time()
-        new_time = current_time + (seconds * 1000)
-        self.mediaplayer.set_time(new_time)
-
-    def toggle_fullscreen(self):
-        if self.isFullScreen():
-            self.showNormal()
-        else:
-            self.showFullScreen()
-
-    def open_file(self):
-        dialog_txt = "Choose Media File"
-        filenames, _ = QFileDialog.getOpenFileNames(self, dialog_txt, os.path.expanduser('~'))
-        if not filenames:
-            return
-
-        self.playlist.extend(filenames)
-        self.media = self.instance.media_new(self.playlist[0])
-        self.mediaplayer.set_media(self.media)
-
-        self.media.parse()
-
-        self.setWindowTitle(os.path.basename(self.playlist[0]))
-
-        self.mediaplayer.set_hwnd(int(self.videoframe.winId()))
-
-        self.play_pause()
-
-    def set_volume(self, volume):
-        self.mediaplayer.audio_set_volume(volume)
-
-    def set_position(self, position):
-        pos = position / 1000.0
-        self.mediaplayer.set_position(pos)
-
-    def update_ui(self):
-        media_pos = int(self.mediaplayer.get_position() * 1000)
-        self.positionslider.setValue(media_pos)
-
-        if not self.mediaplayer.is_playing():
-            self.timer.stop()
-            if not self.is_paused:
-                self.stop()
-
-def main():
-    app = QApplication(sys.argv)
-    player = MediaPlayer()
-    player.show()
-    player.resize(640, 480)
-    sys.exit(app.exec())
+        if self.playing_video:
+            self.media_player.stop()
+            self.playing_video = False
 
 if __name__ == "__main__":
-    main()
+    app = MediaPlayerApp()
+    app.mainloop()
