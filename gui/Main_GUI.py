@@ -31,6 +31,14 @@ def exit_app():
     if tk.messagebox.askokcancel("Exit", "Are you sure you want to exit?"):
         app.destroy()
 
+def show_filters_options():
+    filter_options_frame.pack(pady=10)
+    adjust_options_frame.pack_forget()
+
+def show_adjust_options():
+    adjust_options_frame.pack(pady=10)  
+    filter_options_frame.pack_forget()
+
 app = ctk.CTk()
 app.geometry("800x500")
 ctk.set_appearance_mode("dark")
@@ -242,7 +250,7 @@ icon_frame = ctk.CTkFrame(app, height=40)
 icon_frame.pack(side="top", fill="x", pady=(5, 0))
 
 # Load the SVG icons
-icon_paths = ["Assets\icon1.png", "Assets\icon1.png", "Assets\icon1.png", "Assets\icon1.png", "Assets\icon1.png", "Assets\icon1.png", "Assets\icon1.png", "Assets\icon1.png", "Assets\icon1.png", "Assets\icon1.png"]
+icon_paths = ["gui\Assets\icon1.png","gui\Assets\icon1.png","gui\Assets\icon1.png","gui\Assets\icon1.png","gui\Assets\icon1.png","gui\Assets\icon1.png","gui\Assets\icon1.png","gui\Assets\icon1.png","gui\Assets\icon1.png","gui\Assets\icon1.png"]
 
 for icon_path in icon_paths:
     # Load the SVG image
@@ -275,6 +283,72 @@ column_frame.grid_rowconfigure(0, weight=1)
 # Create a frame for the bottom padding
 bottom_frame = ctk.CTkFrame(app, height=5)
 bottom_frame.pack(side="bottom", fill="x")
+
+# Create a frame for the Filters button and options
+filters_frame = ctk.CTkFrame(column1)
+filters_frame.pack(pady=10)
+
+# Create the Filters button
+filters_button = ctk.CTkButton(filters_frame, text="Filters", command=show_filters_options)
+filters_button.pack()
+
+# Create a frame for the filter options (initially hidden)
+filter_options_frame = ctk.CTkFrame(column3)
+
+# Create checkboxes for each filter option
+grayscale_checkbox = ctk.CTkCheckBox(filter_options_frame, text="Grayscale Conversion")
+grayscale_checkbox.pack()
+
+color_conversion_checkbox = ctk.CTkCheckBox(filter_options_frame, text="Color Conversion")
+color_conversion_checkbox.pack()
+
+color_switch_checkbox = ctk.CTkCheckBox(filter_options_frame, text="Color Switch")
+color_switch_checkbox.pack()
+
+extract_channel_checkbox = ctk.CTkCheckBox(filter_options_frame, text="Extract Channel")
+extract_channel_checkbox.pack()
+
+mix_channels_checkbox = ctk.CTkCheckBox(filter_options_frame, text="Mix Channels")
+mix_channels_checkbox.pack()
+
+def show_filters_options():
+    filter_options_frame.pack(pady=10)
+
+# Create a frame for the Adjust button and options
+adjust_frame = ctk.CTkFrame(column1)
+adjust_frame.pack(pady=10)
+
+# Create the Adjust button
+adjust_button = ctk.CTkButton(adjust_frame, text="Adjust", command=show_adjust_options)
+adjust_button.pack()
+
+# Create a frame for the adjust options (initially hidden)
+adjust_options_frame = ctk.CTkFrame(column3)
+
+# Create sliders for each adjust option
+contrast_brightness_slider = ctk.CTkSlider(adjust_options_frame, from_=0, to=100)
+contrast_brightness_slider.pack()
+
+exposure_slider = ctk.CTkSlider(adjust_options_frame, from_=0, to=100)
+exposure_slider.pack()
+
+hue_saturation_slider = ctk.CTkSlider(adjust_options_frame, from_=0, to=100)
+hue_saturation_slider.pack()
+
+curves_slider = ctk.CTkSlider(adjust_options_frame, from_=0, to=100)
+curves_slider.pack()
+
+levels_slider = ctk.CTkSlider(adjust_options_frame, from_=0, to=100)
+levels_slider.pack()
+
+histogram_equalizer_slider = ctk.CTkSlider(adjust_options_frame, from_=0, to=100)
+histogram_equalizer_slider.pack()
+
+contrast_stretch_slider = ctk.CTkSlider(adjust_options_frame, from_=0, to=100)
+contrast_stretch_slider.pack()
+
+def show_adjust_options():
+    adjust_options_frame.pack(pady=10)
 
 # Create an instance of the MediaPlayerApp and add it to the middle column
 media_player_app = MediaPlayerApp(column2)
