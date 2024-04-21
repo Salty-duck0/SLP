@@ -242,7 +242,7 @@ icon_frame = ctk.CTkFrame(app, height=40)
 icon_frame.pack(side="top", fill="x", pady=(5, 0))
 
 # Load the SVG icons
-icon_paths = ["Assets\icon1.png", "Assets\icon1.png", "Assets\icon1.png", "Assets\icon1.png", "Assets\icon1.png", "Assets\icon1.png", "Assets\icon1.png", "Assets\icon1.png", "Assets\icon1.png", "Assets\icon1.png"]
+icon_paths = ["SLP/gui/Assets/icon1.png"]
 
 for icon_path in icon_paths:
     # Load the SVG image
