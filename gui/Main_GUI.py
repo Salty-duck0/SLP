@@ -295,21 +295,24 @@ filters_button.pack()
 # Create a frame for the filter options (initially hidden)
 filter_options_frame = ctk.CTkFrame(column3)
 
-# Create checkboxes for each filter option
+# Create checkboxes for each filter option within the filter_options_frame
 grayscale_checkbox = ctk.CTkCheckBox(filter_options_frame, text="Grayscale Conversion")
-grayscale_checkbox.pack()
+grayscale_checkbox.grid(row=0, column=0, sticky="w")
 
 color_conversion_checkbox = ctk.CTkCheckBox(filter_options_frame, text="Color Conversion")
-color_conversion_checkbox.pack()
+color_conversion_checkbox.grid(row=1, column=0, sticky="w")
 
 color_switch_checkbox = ctk.CTkCheckBox(filter_options_frame, text="Color Switch")
-color_switch_checkbox.pack()
+color_switch_checkbox.grid(row=2, column=0, sticky="w")
 
 extract_channel_checkbox = ctk.CTkCheckBox(filter_options_frame, text="Extract Channel")
-extract_channel_checkbox.pack()
+extract_channel_checkbox.grid(row=3, column=0, sticky="w")
 
 mix_channels_checkbox = ctk.CTkCheckBox(filter_options_frame, text="Mix Channels")
-mix_channels_checkbox.pack()
+mix_channels_checkbox.grid(row=4, column=0, sticky="w")
+
+# Configure the grid to expand options
+filter_options_frame.grid_columnconfigure(0, weight=1)
 
 def show_filters_options():
     filter_options_frame.pack(pady=10)
