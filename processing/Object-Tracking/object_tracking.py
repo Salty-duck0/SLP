@@ -11,7 +11,7 @@ frame = cv2.resize(frame, (Width,Height),
 
 
 tracker_types = ['BOOSTING', 'MIL','KCF', 'TLD', 'MEDIANFLOW', 'GOTURN', 'MOSSE', 'CSRT']
-tracker_type = tracker_types[5]
+tracker_type = tracker_types[0]
 
 if tracker_type == 'BOOSTING':
     tracker = cv2.legacy.TrackerBoosting_create()
