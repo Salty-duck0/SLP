@@ -12,11 +12,11 @@ def rotate(frame):
     pass
 
 def Verticalflip(frame):
-    VerticalFilpped = cv2.flip(frame,1)
+    VerticalFilpped = cv2.flip(frame,0)
     return VerticalFilpped
 
 def Horizontalflip(frame):
-    HorizontalFilpped = cv2.flip(frame,0)
+    HorizontalFilpped = cv2.flip(frame,1)
     return HorizontalFilpped
     
 
@@ -37,11 +37,11 @@ def medianFilter(img,kernelSize):
     return median
 
 
-def AverageFilter(img,kernelSize):
+def averageFilter(img,kernelSize):
     avgBlur = cv2.blur(img, kernelSize)
     return avgBlur
 
-def bilateralFiltering(img , dValue, sigmaColor, sigmaSpace):
+def bilateralFilter(img , dValue, sigmaColor, sigmaSpace):
     bilateral = cv2.bilateralFilter(img, dValue, sigmaColor, sigmaSpace) 
     return bilateral
 
@@ -49,7 +49,7 @@ def laplaceFilter(img):
     laplacian = cv2.Laplacian(img,cv2.CV_64F)
     return laplacian
 
-def CannyFilter(img ,t_lower,t_upper):
+def cannyFilter(img ,t_lower,t_upper):
     edge = cv2.Canny(img, t_lower, t_upper) 
     return edge
     
